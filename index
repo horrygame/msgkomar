@@ -131,3 +131,113 @@
         const chatMessages = document.getElementById('chat-messages');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+// Переменные
+        let currentUser = '';
+        const CHAT_KEY = 'github_chat_messages';
+
+        // Инициализация
+        function init() {
+            // Проверяем, есть ли сохраненное имя пользователя
+            const savedUser = localStorage.getItem('chat_username');
+            if (savedUser) {
+                currentUser = savedUser;
+                showChat();
+            }
+            
+            loadMessages();
+        }
+
+        // Показать чат
+        function showChat() {
+            loginForm.style.display = 'none';
+            chatContainer.style.display = 'block';
+            currentUserSpan.textContent = currentUser;
+            messageInput.focus();
+        }
+
+        // Загрузка сообщений
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem(CHAT_KEY)) || [];
+            messages.forEach(msg => {
+                addMessage(msg.text, msg.sender, msg.time, false);
+            });
+            scrollToBottom();
+        }
+
+        // Сохранение сообщения
+        function saveMessage(text, sender, time) {
+            const messages = JSON.parse(localStorage.getItem(CHAT_KEY)) || [];
+            messages.push({ text, sender, time });
+            localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+        }
+
+        // Добавление сообщения в чат
+        function addMessage(text, sender, time, save = true) {
+            const isCurrentUser = sender === currentUser;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = message ${isCurrentUser ? 'sent' : 'received'};
+            
+            messageDiv.innerHTML = 
+                <div>${text}</div>
+                <div class="message-info">
+                    ${isCurrentUser ? 'Вы' : sender} • ${time}
+                </div>
+            ;
+            
+            chatMessages.appendChild(messageDiv);
+            
+            if (save) {
+                saveMessage(text, sender, time);
+            }
+            
+            scrollToBottom();
+        }
+
+        // Отправка сообщения
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text) {
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                addMessage(text, currentUser, time);
+                messageInput.value = '';
+                
+                // Имитация ответа
+                setTimeout(() => {
+                    const replies = [
+                        "Привет! Как дела?",
+                        "Интересное сообщение!",
+                        "Я бот этого чата",
+                        "Продолжайте общение!",
+                        "Сообщения сохраняются в вашем браузере"
+                    ];
+                    const reply = replies[Math.floor(Math.random() * replies.length)];
+                    addMessage(reply, "Чат-бот", new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                }, 1000);
+            }
+        }
+
+        // Прокрутка вниз
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Обработчики событий
+        loginButton.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            if (username) {
+                currentUser = username;
+                localStorage.setItem('chat_username', username);
+                showChat();
+            }
+        });
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Инициализация при загрузке
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
